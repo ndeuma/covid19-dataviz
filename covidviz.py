@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os.path
 import urllib.request
 
 API_HOST = "http://covid19-api-backend.herokuapp.com"
@@ -30,15 +31,18 @@ def get_county(county_id):
     return None
 
 parser = argparse.ArgumentParser(description="Download COVID-19 case data for German counties")
-parser.add_argument("county", help="county IDs (AGS) of the counties for which to download data")
+parser.add_argument("county_ids", nargs="*", help="county IDs (AGS) of the counties for which to download data")
 args = parser.parse_args()
 
-county = get_county(args.county)
-
-if county is None:
-    print(f"Error: No county with ID {args.county} found.")
-    exit(1)
-
-print(f"Downloading {county['gen']}")
-download(args.county)
+for county_id in args.county_ids:
+    county = get_county(county_id)    
+    if county is None:
+        print(f"Error: No county with ID {county_id} found.")
+    else:
+        name = county["name"]
+        if os.path.isfile(f"{county_id}.json"):
+            print(f"County with ID {county_id} ({name}) has already been downloaded.")
+        else:
+            print(f"Downloading county with ID {county_id} ({name})")
+            download(county["ags"])
 
